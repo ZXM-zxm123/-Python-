@@ -41,27 +41,43 @@ def get_difficulty():
 
 
 def get_user_guess(min_num, max_num):
-    """获取用户的猜测输入"""
+    """获取用户的猜测输入，支持退出命令"""
+    exit_commands = ['exit', 'quit', 'q']
+    
     while True:
+        user_input = input(f"\n请输入你的猜测 ({min_num}-{max_num})，或输入 'exit'/'quit'/'q' 退出: ").strip().lower()
+        
+        # 检查是否是退出命令
+        if user_input in exit_commands:
+            return 'exit'
+        
+        # 尝试转换为整数
         try:
-            guess = int(input(f"\n请输入你的猜测 ({min_num}-{max_num}): "))
+            guess = int(user_input)
             if min_num <= guess <= max_num:
                 return guess
             else:
                 print(f"请输入 {min_num} 到 {max_num} 之间的数字！")
         except ValueError:
-            print("请输入有效的整数！")
+            print("请输入有效的整数，或输入 'exit'、'quit'、'q' 退出游戏！")
 
 
 def play_game(min_num, max_num):
-    """进行一轮猜数字游戏"""
+    """进行一轮猜数字游戏，支持中途退出"""
     target_number = random.randint(min_num, max_num)
     attempts = 0
     
     print(f"\n游戏开始！我已经想好了一个 {min_num} 到 {max_num} 之间的数字。")
+    print("提示：在任何时候输入 'exit'、'quit' 或 'q' 可以立即退出游戏。")
     
     while True:
         guess = get_user_guess(min_num, max_num)
+        
+        # 检查是否是退出命令
+        if guess == 'exit':
+            print("\n游戏已退出。")
+            return 'exit'
+        
         attempts += 1
         
         if guess < target_number:
@@ -100,14 +116,19 @@ def main():
             print(f"\n{difficulty}难度还没有记录，你将成为第一个挑战者！")
         
         # 进行游戏
-        attempts = play_game(min_num, max_num)
+        game_result = play_game(min_num, max_num)
+        
+        # 检查是否是中途退出
+        if game_result == 'exit':
+            print("\n感谢游玩！再见！")
+            break
         
         # 检查是否打破记录
-        if not current_best or attempts < current_best:
+        if not current_best or game_result < current_best:
             print(f"\n恭喜！你打破了{difficulty}难度的最少猜测次数记录！")
             print(f"原记录: {current_best if current_best else '无'} 次")
-            print(f"新记录: {attempts} 次")
-            best_scores[difficulty] = attempts
+            print(f"新记录: {game_result} 次")
+            best_scores[difficulty] = game_result
             save_best_scores(best_scores)
         
         # 询问是否继续游戏
